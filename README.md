@@ -1,126 +1,242 @@
 
-# PCA and Digital Image Processing 
+# PCA for Facial Image Recognition
 
 ## Introduction
 
-So far we have looked at applying PCA on simple datasets in order to understand the mechanism of this algorithm. PCA really shines when applied to complex high dimensional data. In this lesson, we shall look at Image Processing and how PCA can help us analyze, recognize and compress spatial image data by reducing the number of dimensions of an image and thus simplifying the analyses. 
+In this lesson you'll get to explore an exciting application of PCA: as preprocessing for facial image recognition!
+
 ## Objectives
 
 You will be able to:
-- Understand and describe how digitized images are represented in a computational environment
-- Develop an intuition on how images are processed in a number of ways using matrix algebra
-- Evaluate the role of PCA towards facial recognition with Eigenfaces
-- Explain how Image compression can be achieved through PCA for performance oriented analyses. 
+* Load the Olivetti Dataset using sci-kit learn
+* See the performance gains of using PCA as a preprocessing step for complex datasets in machine learning pipelines
 
-## Digital Image Representation 
-All the images that you see on your computer screens/mobile phones, the photos you take with your mobile phone are examples of digital images. It is possible to represent such digitized images in a computational environment using matrices. 
+## Loading the Data
 
-### Black and white images
-
-<img src="felix1.png" width=100>
+First, let's load the dataset.
 
 
-The small vblack and white image of Felix the Cat can be represented by a 35x35 matrix whose elements are the numbers 0 and 1 . These numbers represent the color of each pixel in the image, the number 0 indicates black, and the number 1 indicates white. Digital images using only two colors are called binary images or boolean images.
-
-The image would be digitized as a matrix as shown below:
-<img src="felix2.gif" width=600>
-
-The 35x35 matrix that you see above, on the right hand side , is actually matrix representation of real image. The image can be stored and processed in the matrix form, and converted back to a display image by filling the pixels o the screen, according to values given in the matrix. 
-
-### Greyscale images
-Grayscale images can also be represented by matrices. In this case, each element of the matrix determines the intensity of the corresponding pixel. For convenience, most of the current digital files use integer numbers between 0 (to indicate black, the color of minimal intensity) and 255 (to indicate white, maximum intensity), giving a total of 2^8 - 256 different levels of gray.
+```python
+import matplotlib.pyplot as plt
+from sklearn.datasets import fetch_olivetti_faces
+```
 
 
-<img src="grey.png" width=800>
+```python
+data = fetch_olivetti_faces()
+```
+
+## Previewing the Images in the Dataset
+
+Next, we'll take a quick preview of the images within the dataset.
+
+
+```python
+fig, axes = plt.subplots(nrows=4, ncols=5, figsize=(10,10))
+for n in range(20):
+    i = n //5
+    j = n%5
+    ax = axes[i][j]
+    ax.imshow(data.images[n], cmap=plt.cm.gray)
+plt.title('First 20 Images From the Olivetti Dataset');
+```
+
+
+![png](index_files/index_5_0.png)
+
+
+## Training a Baseline Classifier
+
+In a minute, you'll take a look at the performance gains by using PCA as a preprocessing technique. To compare the performance, here's an out of the box classifier's performance.
+
+
+```python
+from sklearn import svm
+from sklearn.model_selection import train_test_split
+```
+
+
+```python
+X = data.data
+y = data.target
+X_train, X_test, y_train, y_test = train_test_split(X,y, random_state=22)
+```
+
+
+```python
+clf = svm.SVC(C=5, gamma=0.05)
+%timeit clf.fit(X_train, y_train)
+```
+
+    989 ms ± 14.5 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 
 
 
-Above shows a low resolution (low pixel count), greyscale image of Abraham Lincoln. Here we can see how different levels of grey are being represented as numerical elements of a matrix, with a range between 0 - 255 as mentioned above. 
+```python
+train_acc = clf.score(X_train, y_train)
+test_acc = clf.score(X_test, y_test)
+print('Training Accuracy: {}\tTesting Accuracy: {}'.format(train_acc, test_acc))
+```
+
+    Training Accuracy: 1.0	Testing Accuracy: 0.74
 
 
-### Color images
-Color images can be represented by three matrices. Each matrix specifies the amount of red, green and blue (RGB) that makes up the image. This color system is known as RGB. The elements of these matrices are integer numbers between 0 and 255, and they determine the intensity of the pixel with respect to the color of the matrix. Thus, in the RGB system, it is possible to represent 256^3 = 2^{24} = 16777216 (16 million) different colors.
+## Grid Search on the Baseline Classifier
 
-<img src="color.png" width=800>
+To produce a more robust baseline to compare against, let's see how much performance you can squeeze out of an initial model. To do that, you could run a grid search to find optimal hyperparameters for the model. It's also worth timing the duration of training such a model, as PCA will drastically decrease training time, and it's interesting to observe this performance gain.
 
-## Digital Image Processing and Matrix Algebra
-
-Once a digital image is represented by matrices as shown above, we can perform matrix operations on the images to process and analyze it in different ways. For example, Consider Felix the Cat's binary image shown above. 
-
-<img src="felix3.png" width=800>
+> **Warning**: It's not recommended to run the cell below. (Doing so is apt to take well over an hour, depending on the particular specs of your machine.)
 
 
+```python
+import numpy as np
+from sklearn.model_selection import GridSearchCV
 
-In the first image above, we see a matrix, $A = (a_{i,j})$ , where i and j represent the location of a pixel in the 2D image. 
-
-The image B corresponds to the transposed matrix of A, that is, $B = (b_{i, j}) = (a_{j, i}) = A^{T}$. 
-
-The image H corresponds to the matrix $(a_{j, 35 - i + 1})$. 
-
-__Bonus__: Try to discover the matrix relationships between the image A and the other images!
-
-For colored images, if we take the arithmetic mean of the component matrices R, G and B from a color image A, we will get a Grey scale version of the image (non-integer values are rounded to the nearest integer) as shown below:
-<img src="color2.png" width=800>
-
-Similarly, image effects/filters and animations can be created by matrix algebra , below is another example how Mona Lisa transforms into a Lego face. 
-
-<img src="mona_lisa.png" width=900>
-
-## A Generalized Representation
-
-When using these sort of matrix techniques in computer vision, we must consider representation of images. A square, $N$ by $N$ image can be expressed as an $N^2$ dimensional image.
-$$X = (x_1, x_2 , .., x_{n^2})$$
-
-Here the rows of pixels in the image are placed one after the other to form a one dimensional image. E.g. The first $N$ elements $(x_1, .., x_N)$ will be the first row of the image, the next $N$ elements are the next row, and so on. The values in the vector are the intensity values of the image, possibly a single Grey scale value.
-
-## Image Recognition with PCA 
-
-Suppose we have 20 images (ImageVec1 to ImageVec20)  having a size N by N i.e. each image is N pixels high by N pixels wide. For each image we can create an image vector as described in the section above. We can then put all the images together in one big image-matrix.
-
-<img src="mat.png" width=300>
-
-This gives us a starting point for our PCA analysis, as we did with simpler datasets earlier. Here each image becomes an observation, whereas the pixel values represent dimensions of the data (Remember all images have same dimensions). Once we have performed PCA, we have our original data in terms of the eigenvectors we found from the covariance matrix.
-
-### Why is this useful? 
-
-For an application like object/facial recognition, we can start with a dataset containing objects/people's faces. Given a new , previously unseen face image, We can identify the object (or whose image is it when it is a face), based on images available in the training dataset. For such an application, we measure the difference between the new image and the original images. This difference is measured on the new axes described by PCA instead of original dataset. Below is a quick example of how this may look in practice.
-
-<img src="eigen.png" width=400>
-
-## EigenFaces
-PCA has a very good application which is in the computer vision domain, called __EigenFace__. Eigenface is a name for eigenvectors which are the components of the face itself. It has been used for face recognition where the most variations considered as important. 
-
-It turns out that these axes works much better for facial recognition, because the PCA analysis gives us the original images in terms of the differences and similarities between it, and the new face i.e. identifying the statistical patterns in the data.
-
-Since all the vectors are $n^2$ dimensional, we can get $n^2$ eigenvectors. In practice, we are able to leave out some of the less significant eigenvectors, and the recognition still performs well with a comparatively low cost.
-This behavior is shown in the example below.
-
-<img src="ex2.png" width=600>
+clf = svm.SVC()
+param_grid = {"C" : np.linspace(.1, 10, num=11),
+             "gamma" : np.linspace(10**-3, 5, num=11)}
+grid_search = GridSearchCV(clf, param_grid, cv=5)
+%timeit grid_search.fit(X_train, y_train)
+```
 
 
-## PCA for image compression
+```python
+grid_search.best_estimator_.score(X_test, y_test)
+```
 
-Dimensionality reduction offered by PCA can also be used for image compression. This idea is known as also know as "Hotelling Transform". 
+## Preprocessing with PCA
 
-Just like earlier, if we have 20 images, each with $N^2$ pixels, we can create  $N^2$ vectors, each with 20 dimensions. Each vector consists of all the intensity values from the same pixel from each picture. This is different from the previous example because before we had a vector for image, and each item in that vector was a different pixel, whereas now
-we have a vector for each pixel, and each item in the vector is from a different image.
+Now, it's time to perform some dimensionality reduction with PCA! To start, you can simply pick an arbitrary number of components. Later, you could compare the performance of a varying number of components.
 
-Now we perform the PCA on this set of data. We will get 20 eigenvectors because each vector is 20-dimensional. To compress the data, we can then choose to transform the data only using, say 15 of the eigenvectors instead of 20. This gives us a final data set with only 15 dimensions, which will save a lot of storage space. However, when the original data is reproduced, the images have lost some of the information. This compression technique is said to be __lossy__ because the decompressed image is not exactly the same as the original, generally worse. An example of a such a lossy compression is shown below.
-<img src="recon.jpg" width=500>
+Note that to avoid information leakage from the test set, PCA should only be fit on the training data.
 
-On the left we see the actual images which are then converted to eigenvectors. On the extreme right we see a reconstructed image, which due to the lossy nature of this approach, takes away some details. All the intermediate images show images created with lesser number of eigenvectors. We can see that with just the right amount of compression, the key features of the faces are preserved. Such techniques could be helpful where performance of a algorithm in terms of speed and agility is desired above all. 
 
-In the next few lessons, we shall apply PCA for image recognition and try to get some hands on experience with Eigenfaces. You are advised to visit the additional resources to get a good idea about basic of image representation, analysis and processing with PCA. 
+```python
+from sklearn.decomposition import PCA
+```
 
-## Additional Resources
-[Digital Image Representation Fundamentals](http://me.umn.edu/courses/me5286/vision/Notes/2015/ME5286-Lecture3.pdf)
 
-[Face Recognition for Beginners](https://towardsdatascience.com/face-recognition-for-beginners-a7a9bd5eb5c2)
+```python
+X[0].shape
+```
 
-[PCA , Eigenfaces and all that](http://bugra.github.io/work/notes/2013-07-27/PCA-EigenFace-And-All-That/)
 
-[Image Compression via PCA](https://fredhohman.com/assets/image_compression.pdf)
+```python
+pca = PCA(n_components=100, whiten=True)
+X_pca_train = pca.fit_transform(X_train)
+X_pca_train.shape
+```
 
-## Summary 
 
-In this lesson, we looked at how digital images are presented in an analytics context. We looked at the representation examples for b/w, Greyscale and color images. We also looked at how images, represented as matrices can be manipulated and transformed using matrix algebra. The lesson highlighted the role of PCA in two important areas of Image Processing , i.e. facial recognition and image compression. Next, we shall dive a bit deeper and see how these processes work in python. 
+```python
+X_pca_train[0].shape
+```
+
+## Exploring the Explained Variance Captured by Principal Components
+
+How much of the total data was capture in these compressed representations? Take a quick look at a plot of the explained variance to explore this.
+
+
+```python
+plt.plot(range(1,101), pca.explained_variance_ratio_.cumsum())
+plt.title('Total Variance Explained by Varying Number of Principle Components');
+```
+
+## Training a Classifier on the Compressed Dataset
+
+Now its time to compare the performance of a classifier trained on the compressed dataset.
+
+
+```python
+X_pca_test = pca.transform(X_test)
+clf = svm.SVC()
+%timeit clf.fit(X_pca_train, y_train)
+```
+
+
+```python
+train_pca_acc = clf.score(X_pca_train, y_train)
+test_pca_acc = clf.score(X_pca_test, y_test)
+print('Training Accuracy: {}\tTesting Accuracy: {}'.format(train_pca_acc, test_pca_acc))
+```
+
+## Grid Search for Appropriate Parameters
+
+Going further, you can also refine the model using grid search.
+
+
+```python
+import numpy as np
+from sklearn.grid_search import GridSearchCV
+clf = svm.SVC()
+param_grid = {"C" : np.linspace(.1, 10, num=11),
+             "gamma" : np.linspace(10**-3, 5, num=11)}
+grid_search = GridSearchCV(clf, param_grid, cv=5)
+%timeit grid_search.fit(X_pca_train, y_train)
+```
+
+
+```python
+grid_search.best_params_
+```
+
+
+```python
+grid_search.best_estimator_.score(X_pca_test, y_test)
+```
+
+## Visualizing Some of the Features Captured by PCA
+
+While the model is clearly more accurate and faster to train, let's take a moment to circle back and visualize some of the information captured by PCA. Specifically, you'll take a look at 2 perspectives. First, you'll take a look at visualizing the feature means. Second, you'll get to visualize the compressed encodings of the dataset.
+
+### Visualizing Feature Means
+
+While a very simple mathematical model, just observing the mean values of the features produces quite an informative picture:
+
+
+```python
+plt.imshow(X.mean(axis=0).reshape(data.images[0].shape), cmap=plt.cm.gray)
+```
+
+### Visualizing Compressed Representations
+
+Visualizing the components from PCA is slightly tricky, as they have new dimensions, which may not correspond accurately to the 64x64 size of the original images. Fortunately, sci-kit learn provides a useful `inverse_transformation` method to PCA allowing you to reproject the compressed dataset back to the original size. This allows you to observe what features are retrieval and encapsulated within the principle components.
+
+
+```python
+fig, axes
+plt.imshow(pca.inverse_transform(X_pca_train[0]).reshape(64,64), cmap=plt.cm.gray)
+```
+
+To make this even more interesting, take a look at some of the varied levels of detail based on varying number of principle components:
+
+
+```python
+fig, axes = plt.subplots(ncols=4, nrows=3, figsize=(10,10))
+ax = axes[0][0]
+ax.set_title('Original Image')
+ax.imshow(X_train[0].reshape(64,64), cmap=plt.cm.gray)
+for n in range(1,12):
+    i = n //4
+    j = n%4
+    ax = axes[i][j]
+    ax.set_title('Re')
+    n_feats = n*10
+    pca = PCA(n_components=n_feats)
+    pca.fit(X_train)
+    compressed = pca.transform(X_train)
+    ax.set_title('Recovered Image from\n{} principle components'.format(n_feats))
+    ax.imshow(pca.inverse_transform(compressed[0]).reshape(64,64), cmap=plt.cm.gray)
+plt.tight_layout()
+```
+
+## Summary
+
+Awesome! In this lesson, you got to preview of using PCA to reduce the dimensionality of a complex dataset. In the next lab, you'll get a chance to put these same procedures to test in working with the MNIST dataset.
+
+
+```python
+finish = datetime.datetime.now()
+elapsed = finish - start
+print("Notebook took a total of {} to execute.".format(elapsed))
+```
