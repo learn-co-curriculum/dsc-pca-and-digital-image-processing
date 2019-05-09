@@ -99,10 +99,20 @@ grid_search = GridSearchCV(clf, param_grid, cv=5)
 %timeit grid_search.fit(X_train, y_train)
 ```
 
+    10min 17s ± 6.79 s per loop (mean ± std. dev. of 7 runs, 1 loop each)
+
+
 
 ```python
 grid_search.best_estimator_.score(X_test, y_test)
 ```
+
+
+
+
+    0.91
+
+
 
 ## Preprocessing with PCA
 
@@ -121,6 +131,13 @@ X[0].shape
 ```
 
 
+
+
+    (4096,)
+
+
+
+
 ```python
 pca = PCA(n_components=100, whiten=True)
 X_pca_train = pca.fit_transform(X_train)
@@ -128,9 +145,23 @@ X_pca_train.shape
 ```
 
 
+
+
+    (400, 100)
+
+
+
+
 ```python
 X_pca_train[0].shape
 ```
+
+
+
+
+    (100,)
+
+
 
 ## Exploring the Explained Variance Captured by Principal Components
 
@@ -141,6 +172,10 @@ How much of the total data was capture in these compressed representations? Take
 plt.plot(range(1,101), pca.explained_variance_ratio_.cumsum())
 plt.title('Total Variance Explained by Varying Number of Principle Components');
 ```
+
+
+![png](index_files/index_20_0.png)
+
 
 ## Training a Classifier on the Compressed Dataset
 
@@ -153,12 +188,18 @@ clf = svm.SVC()
 %timeit clf.fit(X_pca_train, y_train)
 ```
 
+    33.7 ms ± 228 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
+
+
 
 ```python
 train_pca_acc = clf.score(X_pca_train, y_train)
 test_pca_acc = clf.score(X_pca_test, y_test)
 print('Training Accuracy: {}\tTesting Accuracy: {}'.format(train_pca_acc, test_pca_acc))
 ```
+
+    Training Accuracy: 1.0	Testing Accuracy: 0.78
+
 
 ## Grid Search for Appropriate Parameters
 
@@ -175,15 +216,38 @@ grid_search = GridSearchCV(clf, param_grid, cv=5)
 %timeit grid_search.fit(X_pca_train, y_train)
 ```
 
+    /Users/matthew.mitchell/anaconda3/lib/python3.6/site-packages/sklearn/cross_validation.py:41: DeprecationWarning: This module was deprecated in version 0.18 in favor of the model_selection module into which all the refactored classes and functions are moved. Also note that the interface of the new CV iterators are different from that of this module. This module will be removed in 0.20.
+      "This module will be removed in 0.20.", DeprecationWarning)
+    /Users/matthew.mitchell/anaconda3/lib/python3.6/site-packages/sklearn/grid_search.py:42: DeprecationWarning: This module was deprecated in version 0.18 in favor of the model_selection module into which all the refactored classes and functions are moved. This module will be removed in 0.20.
+      DeprecationWarning)
+
+
+    16.8 s ± 25.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+
+
 
 ```python
 grid_search.best_params_
 ```
 
 
+
+
+    {'C': 10.0, 'gamma': 0.001}
+
+
+
+
 ```python
 grid_search.best_estimator_.score(X_pca_test, y_test)
 ```
+
+
+
+
+    0.89
+
+
 
 ## Visualizing Some of the Features Captured by PCA
 
@@ -198,6 +262,17 @@ While a very simple mathematical model, just observing the mean values of the fe
 plt.imshow(X.mean(axis=0).reshape(data.images[0].shape), cmap=plt.cm.gray)
 ```
 
+
+
+
+    <matplotlib.image.AxesImage at 0x1a21557278>
+
+
+
+
+![png](index_files/index_30_1.png)
+
+
 ### Visualizing Compressed Representations
 
 Visualizing the components from PCA is slightly tricky, as they have new dimensions, which may not correspond accurately to the 64x64 size of the original images. Fortunately, sci-kit learn provides a useful `inverse_transformation` method to PCA allowing you to reproject the compressed dataset back to the original size. This allows you to observe what features are retrieval and encapsulated within the principle components.
@@ -207,6 +282,17 @@ Visualizing the components from PCA is slightly tricky, as they have new dimensi
 fig, axes
 plt.imshow(pca.inverse_transform(X_pca_train[0]).reshape(64,64), cmap=plt.cm.gray)
 ```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x1a1f9a0080>
+
+
+
+
+![png](index_files/index_32_1.png)
+
 
 To make this even more interesting, take a look at some of the varied levels of detail based on varying number of principle components:
 
@@ -230,13 +316,10 @@ for n in range(1,12):
 plt.tight_layout()
 ```
 
+
+![png](index_files/index_34_0.png)
+
+
 ## Summary
 
 Awesome! In this lesson, you got to preview of using PCA to reduce the dimensionality of a complex dataset. In the next lab, you'll get a chance to put these same procedures to test in working with the MNIST dataset.
-
-
-```python
-finish = datetime.datetime.now()
-elapsed = finish - start
-print("Notebook took a total of {} to execute.".format(elapsed))
-```
