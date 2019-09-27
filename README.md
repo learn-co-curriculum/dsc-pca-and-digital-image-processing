@@ -85,10 +85,11 @@ print('Training Accuracy: {}\tTesting Accuracy: {}'.format(train_acc, test_acc))
 
 To produce a more robust baseline to compare against, let's see how much performance you can squeeze out of an initial model. To do that, you could run a grid search to find optimal hyperparameters for the model. It's also worth timing the duration of training such a model, as PCA will drastically decrease training time, and it's interesting to observe this performance gain.
 
-> **Warning**: It's not recommended to run the cell below. (Doing so is apt to take well over an hour, depending on the particular specs of your machine.)
+> **Warning**: ⏰ It's not recommended to run the cell below. (Doing so is apt to take well over an hour, depending on the particular specs of your machine.)
 
 
 ```python
+# ⏰ This cell may take over an hour to run!
 import numpy as np
 from sklearn.model_selection import GridSearchCV
 
@@ -207,6 +208,7 @@ Going further, you can also refine the model using grid search.
 
 
 ```python
+# ⏰ This cell may take several minutes to run
 import numpy as np
 from sklearn.grid_search import GridSearchCV
 clf = svm.SVC()
