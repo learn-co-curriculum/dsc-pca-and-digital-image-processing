@@ -8,10 +8,12 @@ In this lesson you'll get to explore an exciting application of PCA: as preproce
 ## Objectives
 
 You will be able to:
-* Load the Olivetti Dataset using sci-kit learn
-* See the performance gains of using PCA as a preprocessing step for complex datasets in machine learning pipelines
 
-## Loading the Data
+- Use PCA to discover the principal components with images 
+- Use the principal components of a dataset as features in a machine learning model 
+
+
+## Load the data
 
 First, let's load the dataset.
 
@@ -26,7 +28,7 @@ from sklearn.datasets import fetch_olivetti_faces
 data = fetch_olivetti_faces()
 ```
 
-## Previewing the Images in the Dataset
+## Preview the images in the dataset
 
 Next, we'll take a quick preview of the images within the dataset.
 
@@ -45,9 +47,9 @@ plt.title('First 20 Images From the Olivetti Dataset');
 ![png](index_files/index_5_0.png)
 
 
-## Training a Baseline Classifier
+## Train a baseline classifier
 
-In a minute, you'll take a look at the performance gains by using PCA as a preprocessing technique. To compare the performance, here's an out of the box classifier's performance.
+You'll soon take a look at the performance gains by using PCA as a preprocessing technique. To compare the performance, here's an out of the box classifier's performance.
 
 
 ```python
@@ -59,7 +61,7 @@ from sklearn.model_selection import train_test_split
 ```python
 X = data.data
 y = data.target
-X_train, X_test, y_train, y_test = train_test_split(X,y, random_state=22)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=22)
 ```
 
 
@@ -81,9 +83,9 @@ print('Training Accuracy: {}\tTesting Accuracy: {}'.format(train_acc, test_acc))
     Training Accuracy: 1.0	Testing Accuracy: 0.74
 
 
-## Grid Search on the Baseline Classifier
+## Grid search on the baseline classifier
 
-To produce a more robust baseline to compare against, let's see how much performance you can squeeze out of an initial model. To do that, you could run a grid search to find optimal hyperparameters for the model. It's also worth timing the duration of training such a model, as PCA will drastically decrease training time, and it's interesting to observe this performance gain.
+To produce a more robust baseline to compare against, let's see how much performance you can squeeze by performing a grid search to find optimal hyperparameters for the model. It's also worth timing the duration of training such a model, as PCA will drastically decrease training time, and it's interesting to observe this performance gain.
 
 > **Warning**: ⏰ It's not recommended to run the cell below. (Doing so is apt to take well over an hour, depending on the particular specs of your machine.)
 
@@ -94,9 +96,11 @@ import numpy as np
 from sklearn.model_selection import GridSearchCV
 
 clf = svm.SVC()
-param_grid = {"C" : np.linspace(.1, 10, num=11),
-             "gamma" : np.linspace(10**-3, 5, num=11)}
+param_grid = {'C' : np.linspace(0.1, 10, num=11),
+             'gamma' : np.linspace(10**-3, 5, num=11)}
+
 grid_search = GridSearchCV(clf, param_grid, cv=5)
+
 %timeit grid_search.fit(X_train, y_train)
 ```
 
@@ -164,9 +168,9 @@ X_pca_train[0].shape
 
 
 
-## Exploring the Explained Variance Captured by Principal Components
+## Explore the explained variance captured by principal components
 
-How much of the total data was capture in these compressed representations? Take a quick look at a plot of the explained variance to explore this.
+How much of the total data was captured in these compressed representations? Take a quick look at a plot of the explained variance to explore this.
 
 
 ```python
@@ -178,7 +182,7 @@ plt.title('Total Variance Explained by Varying Number of Principle Components');
 ![png](index_files/index_20_0.png)
 
 
-## Training a Classifier on the Compressed Dataset
+## Train a classifier on the compressed dataset
 
 Now its time to compare the performance of a classifier trained on the compressed dataset.
 
@@ -202,19 +206,20 @@ print('Training Accuracy: {}\tTesting Accuracy: {}'.format(train_pca_acc, test_p
     Training Accuracy: 1.0	Testing Accuracy: 0.78
 
 
-## Grid Search for Appropriate Parameters
+## Grid search for appropriate parameters
 
 Going further, you can also refine the model using grid search.
 
 
 ```python
 # ⏰ This cell may take several minutes to run
-import numpy as np
-from sklearn.grid_search import GridSearchCV
 clf = svm.SVC()
-param_grid = {"C" : np.linspace(.1, 10, num=11),
-             "gamma" : np.linspace(10**-3, 5, num=11)}
+
+param_grid = {'C' : np.linspace(0.1, 10, num=11),
+             'gamma' : np.linspace(10**-3, 5, num=11)}
+
 grid_search = GridSearchCV(clf, param_grid, cv=5)
+
 %timeit grid_search.fit(X_pca_train, y_train)
 ```
 
@@ -251,11 +256,11 @@ grid_search.best_estimator_.score(X_pca_test, y_test)
 
 
 
-## Visualizing Some of the Features Captured by PCA
+## Visualize some of the features captured by PCA
 
-While the model is clearly more accurate and faster to train, let's take a moment to circle back and visualize some of the information captured by PCA. Specifically, you'll take a look at 2 perspectives. First, you'll take a look at visualizing the feature means. Second, you'll get to visualize the compressed encodings of the dataset.
+While this model may have lost some accuracy, it is clearly much faster to train. Let's take a moment to visualize some of the information captured by PCA. Specifically, you'll take a look at two perspectives. First, you'll take a look at visualizing the feature means. Second, you'll get to visualize the compressed encodings of the dataset.
 
-### Visualizing Feature Means
+### Visualize feature means
 
 While a very simple mathematical model, just observing the mean values of the features produces quite an informative picture:
 
@@ -275,9 +280,9 @@ plt.imshow(X.mean(axis=0).reshape(data.images[0].shape), cmap=plt.cm.gray)
 ![png](index_files/index_30_1.png)
 
 
-### Visualizing Compressed Representations
+### Visualize compressed representations
 
-Visualizing the components from PCA is slightly tricky, as they have new dimensions, which may not correspond accurately to the 64x64 size of the original images. Fortunately, sci-kit learn provides a useful `inverse_transformation` method to PCA allowing you to reproject the compressed dataset back to the original size. This allows you to observe what features are retrieval and encapsulated within the principle components.
+Visualizing the components from PCA is slightly tricky, as they have new dimensions, which may not correspond accurately to the 64x64 size of the original images. Fortunately, scikit-learn provides a useful `.inverse_transformation()` method to PCA allowing you to reproject the compressed dataset back to the original size. This allows you to observe what features are retrieved and encapsulated within the principle components.
 
 
 ```python
@@ -324,4 +329,4 @@ plt.tight_layout()
 
 ## Summary
 
-Awesome! In this lesson, you got to preview of using PCA to reduce the dimensionality of a complex dataset. In the next lab, you'll get a chance to put these same procedures to test in working with the MNIST dataset.
+Awesome! In this lesson, you saw how you can use PCA to reduce the dimensionality of a complex dataset. In the next lab, you'll get a chance to put these same procedures to test in working with the MNIST dataset.
