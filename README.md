@@ -1,17 +1,15 @@
-
 # PCA for Facial Image Recognition
 
 ## Introduction
 
-In this lesson you'll get to explore an exciting application of PCA: as preprocessing for facial image recognition!
+In this lesson, you'll get to explore an exciting application of PCA: PCA can be used for preprocessing facial image recognition data!
 
 ## Objectives
 
 You will be able to:
 
-- Use PCA to discover the principal components with images 
+- Use PCA to discover the principal components of image data
 - Use the principal components of a dataset as features in a machine learning model 
-
 
 ## Load the data
 
@@ -49,7 +47,7 @@ plt.title('First 20 Images From the Olivetti Dataset');
 
 ## Train a baseline classifier
 
-You'll soon take a look at the performance gains by using PCA as a preprocessing technique. To compare the performance, here's an out of the box classifier's performance.
+You'll soon take a look at the performance gains by using PCA as a preprocessing technique. To compare the performance, here's an out-of-the-box classifier's performance.
 
 
 ```python
@@ -85,7 +83,7 @@ print('Training Accuracy: {}\tTesting Accuracy: {}'.format(train_acc, test_acc))
 
 ## Grid search on the baseline classifier
 
-To produce a more robust baseline to compare against, let's see how much performance you can squeeze by performing a grid search to find optimal hyperparameters for the model. It's also worth timing the duration of training such a model, as PCA will drastically decrease training time, and it's interesting to observe this performance gain.
+To produce a more robust baseline to compare against, let's see how much performance you can squeeze by conducting a grid search to find optimal hyperparameters for the model. It's also worth timing the duration of training such a model, as PCA will drastically decrease training time and it's interesting to observe this performance gain.
 
 > **Warning**: ⏰ It's not recommended to run the cell below. (Doing so is apt to take well over an hour, depending on the particular specs of your machine.)
 
@@ -121,7 +119,7 @@ grid_search.best_estimator_.score(X_test, y_test)
 
 ## Preprocessing with PCA
 
-Now, it's time to perform some dimensionality reduction with PCA! To start, you can simply pick an arbitrary number of components. Later, you could compare the performance of a varying number of components.
+Now it's time to perform some dimensionality reduction with PCA! To start, you can simply pick an arbitrary number of components. Later, you can compare the performance of a varying number of components.
 
 Note that to avoid information leakage from the test set, PCA should only be fit on the training data.
 
@@ -184,7 +182,7 @@ plt.title('Total Variance Explained by Varying Number of Principle Components');
 
 ## Train a classifier on the compressed dataset
 
-Now its time to compare the performance of a classifier trained on the compressed dataset.
+Now it's time to compare the performance of a classifier trained on the compressed dataset.
 
 
 ```python
@@ -262,7 +260,7 @@ While this model may have lost some accuracy, it is clearly much faster to train
 
 ### Visualize feature means
 
-While a very simple mathematical model, just observing the mean values of the features produces quite an informative picture:
+While it is a very simple mathematical model, just observing the mean values of the features produces quite an informative picture:
 
 
 ```python
@@ -282,7 +280,7 @@ plt.imshow(X.mean(axis=0).reshape(data.images[0].shape), cmap=plt.cm.gray)
 
 ### Visualize compressed representations
 
-Visualizing the components from PCA is slightly tricky, as they have new dimensions, which may not correspond accurately to the 64x64 size of the original images. Fortunately, scikit-learn provides a useful `.inverse_transformation()` method to PCA allowing you to reproject the compressed dataset back to the original size. This allows you to observe what features are retrieved and encapsulated within the principle components.
+Visualizing the components from PCA is slightly tricky, as they have new dimensions which may not correspond accurately to the 64x64 size of the original images. Fortunately, scikit-learn provides a useful `.inverse_transformation()` method to PCA allowing you to reproject the compressed dataset back to the original size. This allows you to observe what features are retrieved and encapsulated within the principal components.
 
 
 ```python
@@ -329,4 +327,4 @@ plt.tight_layout()
 
 ## Summary
 
-Awesome! In this lesson, you saw how you can use PCA to reduce the dimensionality of a complex dataset. In the next lab, you'll get a chance to put these same procedures to test in working with the MNIST dataset.
+Awesome! In this lesson, you saw how you can use PCA to reduce the dimensionality of a complex dataset. In the next lab, you'll get a chance to put these same procedures to the test in working with the MNIST dataset.
